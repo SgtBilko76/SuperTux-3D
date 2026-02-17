@@ -135,7 +135,7 @@ namespace {
 
     bool shiftout = false;
 
-    if (!other_object || !other_object->is_unisolid())
+    if ((!other_object || !other_object->is_unisolid()) && (!moving_object || !moving_object->is_unisolid()))
     {
       if (fabsf(obj_movement.y) > fabsf(obj_movement.x)) {
         if (ileft < SHIFT_DELTA) {
@@ -169,6 +169,17 @@ namespace {
         {
           constraints.constrain_bottom(other_obj_rect.get_top());
           constraints.hit.bottom = true;
+        }
+      }
+      else if (other_object && other_object->get_group() == COLGROUP_MOVING_STATIC &&
+               moving_object && moving_object->is_unisolid())
+      {
+        // Similar to the above, except... hacky?
+        // This prevents weird issues with rocks and granitos.
+        if (grown_other_obj_rect.get_top() - other_object->get_movement().y <= moving_obj_rect.get_top() - (obj_movement.y - 5.f))
+        {
+          constraints.constrain_top(moving_obj_rect.get_top());
+          constraints.hit.top = true;
         }
       }
       else
