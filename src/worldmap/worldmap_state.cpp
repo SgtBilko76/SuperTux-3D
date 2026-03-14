@@ -43,7 +43,7 @@ WorldMapState::WorldMapState(WorldMap& worldmap) :
 }
 
 void
-WorldMapState::new_save()
+WorldMapState::new_save(bool initial)
 {
 
   // Set default properties.
@@ -51,7 +51,7 @@ WorldMapState::new_save()
     m_worldmap.set_sector(DEFAULT_SECTOR_NAME, "", false); // If no current sector is present, set it to "main", or the default one.
 
   // Create a new initial save.
-  save_state(true);
+  save_state(initial);
 }
 
 void
@@ -122,7 +122,7 @@ WorldMapState::load_state()
     catch (const std::exception& err)
     {
       log_warning << "Not loading worldmap state: " << err.what() << std::endl;
-      new_save();
+      new_save(true);
     }
   }
   else
@@ -131,7 +131,7 @@ WorldMapState::load_state()
       fmt::format("Save version doesn't match (got {}), worldmap expects {}. "
                   "Creating a new save.",
                   savegame.get_save_version(), m_worldmap.get_save_version());
-    new_save();
+    new_save(false);
   }
 
   m_worldmap.m_in_level = false;

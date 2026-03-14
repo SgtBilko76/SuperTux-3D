@@ -36,7 +36,8 @@ public:
   void save_state(bool initial = false) const;
 
 private:
-  void new_save();
+  /// @param initial If this is an initial save.
+  void new_save(bool initial);
   void load_tux(const ssq::Table& table);
   void load_levels(const ssq::Table& table);
   void load_tilemap_visibility(const ssq::Table& table);
