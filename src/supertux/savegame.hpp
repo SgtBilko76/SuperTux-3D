@@ -92,6 +92,7 @@ public:
   WorldmapState get_worldmap_state(const std::string& name);
 
   inline int get_save_version() { return m_save_version; }
+  void clear_state_table();
 
   void save(bool initial = false);
 
@@ -99,7 +100,6 @@ public:
 
 private:
   void load(bool base_data = false);
-  void clear_state_table();
 
 private:
   Profile& m_profile;

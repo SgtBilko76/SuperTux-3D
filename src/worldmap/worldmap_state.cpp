@@ -45,6 +45,10 @@ WorldMapState::WorldMapState(WorldMap& worldmap) :
 void
 WorldMapState::new_save(bool initial)
 {
+  Savegame& savegame = m_worldmap.get_savegame();
+  // no need
+  if (!initial)
+    savegame.clear_state_table();
 
   // Set default properties.
   if (!m_worldmap.m_sector)
