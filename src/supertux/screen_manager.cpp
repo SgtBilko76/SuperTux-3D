@@ -406,8 +406,9 @@ ScreenManager::process_events()
     }
     m_input_manager.process_event(event);
 
-
-#define LOGMOUSEY(var) VideoSystem::current()->get_viewport().to_logical(0, var).y
+    // Because of mouse{X,Y}
+#if SDL_VERSION_ATLEAST(2,26,0)
+# define LOGMOUSEY(var) VideoSystem::current()->get_viewport().to_logical(0, var).y
     // If the console is focused, try to funnel mouse events into that. Lisp
     // programmers would be proud!
     // TODO: Dragging-like logic is a little funky, but it's not a big deal
@@ -425,7 +426,11 @@ ScreenManager::process_events()
       m_menu_manager->event(event);
       m_screen_stack.back()->event(event);
     }
-#undef LOGMOUSEY
+# undef LOGMOUSEY
+#else
+    m_menu_manager->event(event);
+    m_screen_stack.back()->event(event);
+#endif
 
     switch (event.type)
     {
