@@ -406,7 +406,6 @@ ScreenManager::process_events()
     }
     m_input_manager.process_event(event);
 
-    m_menu_manager->event(event);
 
 #define LOGMOUSEY(var) VideoSystem::current()->get_viewport().to_logical(0, var).y
     // If the console is focused, try to funnel mouse events into that. Lisp
@@ -422,7 +421,10 @@ ScreenManager::process_events()
         Console::current()->scroll(-event.wheel.y * 2);
     }
     else
+    {
+      m_menu_manager->event(event);
       m_screen_stack.back()->event(event);
+    }
 #undef LOGMOUSEY
 
     switch (event.type)
