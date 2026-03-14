@@ -193,7 +193,14 @@ ScreenManager::quit(std::unique_ptr<ScreenFade> screen_fade)
 {
   Integration::close_all();
 
-  GameManager::current()->save();
+  // XXX: This was an old thing to attempt to 'save' the game on exit, but
+  // because this game is very weird it will save the worldmap when you exit
+  // even when you're on the titlescreen, but this can now break your save
+  // because of the save-version check. A proper solution could be employed, but
+  // 0.7 releases today so I'm just gonna turn it off. It's rather harmless,
+  // anyway.
+
+  //  GameManager::current()->save();
 
 #ifdef __EMSCRIPTEN__
   g_config->save();
