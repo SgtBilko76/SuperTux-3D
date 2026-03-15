@@ -63,3 +63,12 @@ jobs:
           bundle: SuperTux.flatpak
           manifest-path: org.supertux.SuperTux.yml
           cache-key: flatpak-builder-release-${{ github.sha }}
+
+      - name: Create Release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: 'build/upload/SuperTux*'
+          draft: true
