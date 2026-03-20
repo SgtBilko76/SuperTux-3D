@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: SuperTux v0.7.0-rev.1-2-gccf3eea31\n"
+"Project-Id-Version: SuperTux v0.7.0-rev.1-4-gb8912e841\n"
 "Report-Msgid-Bugs-To: https://github.com/SuperTux/supertux/issues\n"
-"POT-Creation-Date: 2026-03-16 21:27+0000\n"
+"POT-Creation-Date: 2026-03-20 22:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
