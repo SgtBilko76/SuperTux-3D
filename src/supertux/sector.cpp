@@ -531,6 +531,16 @@ Sector::is_free_of_tiles(const Rectf& rect, const bool ignoreUnisolid, uint32_t 
 }
 
 bool
+Sector::is_free_of(const Rectf& rect, std::uint8_t colgroups, const MovingObject* ignore_object, const bool ignore_unisolid)
+{
+
+  return m_collision_system->is_free_of(rect,
+                                        colgroups,
+                                        ignore_object ? ignore_object->get_collision_object() : nullptr,
+                                        ignore_unisolid);
+}
+
+bool
 Sector::is_free_of_solid_tiles(float left, float top, float right, float bottom,
                                bool ignore_unisolid) const
 {

@@ -113,6 +113,9 @@ public:
   /** Checks if the specified rectangle is free of (solid) tiles.
       Note that this does not include static objects, e.g. bonus blocks. */
   bool is_free_of_tiles(const Rectf& rect, const bool ignoreUnisolid = false, uint32_t tiletype = Tile::SOLID) const;
+
+  bool is_free_of(const Rectf& rect, std::uint8_t colgroups, const MovingObject* ignore_object = nullptr, const bool ignore_unisolid = false);
+
   /**
    * @scripting
    * @description Checks if the specified sector-relative rectangle is free of solid tiles.
