@@ -110,7 +110,10 @@ dewrangle(const std::string& symbol)
 std::string
 ErrorHandler::get_stacktrace()
 {
-#ifdef WIN32
+  // Windows stacktraces are disabled for now until there's a way to get it
+  // to recognize symbol names (and therefore make it... work). Otherwise,
+  // users will report obfuscated stacktraces, thinking they are useful to developers.
+#ifdef WIN32 && false
   // Adapted from SuperTuxKart, (C) 2013-2015 Lionel Fuentes, GPLv3
 
   if (pcontext == NULL)
@@ -357,27 +360,37 @@ ErrorHandler::handle_error(int sig)
 void
 ErrorHandler::error_dialog_crash(const std::string& stacktrace)
 {
-  char msg[] = "SuperTux has encountered an unrecoverable error!";
+  char msg[100] = "SuperTux has encountered an unrecoverable error!";
+
+  if (stacktrace.empty())
+  {
+    std::strcpy(msg + std::strlen(msg), "\nUnable to obtain details.");
+  }
 
   std::cerr << msg << "\n" << stacktrace << std::endl;
 
-  SDL_MessageBoxButtonData btns[] = {
+  SDL_MessageBoxButtonData btns[3] = {
     {
       0, // flags
       0, // buttonid
       "Report" // text
     },
     {
-      0, // flags
-      1, // buttonid
-      "Details" // text
-    },
-    {
       SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, // flags
-      2, // buttonid
+      stacktrace.empty() ? 1 : 2, // buttonid
       "OK" // text
-    }
+    },
+    {}
   };
+
+  if (!stacktrace.empty())
+  {
+    btns[2] = {
+        0, // flags
+        1, // buttonid
+        "Details" // text
+    };
+  }
 
   SDL_MessageBoxData data = {
     SDL_MESSAGEBOX_ERROR, // flags
@@ -395,11 +408,14 @@ ErrorHandler::error_dialog_crash(const std::string& stacktrace)
   switch (resultbtn)
   {
     case 0:
-      report_error(stacktrace);
+      report_crash(stacktrace);
       break;
 
     case 1:
     {
+      if (stacktrace.empty())
+        break;
+
       SDL_MessageBoxButtonData detailsbtns[] = {
         {
           0, // flags
@@ -426,7 +442,7 @@ ErrorHandler::error_dialog_crash(const std::string& stacktrace)
       SDL_ShowMessageBox(&data, &resultbtn);
 
       if (resultbtn == 0)
-        report_error(stacktrace);
+        report_crash(stacktrace);
 
       break;
     }
@@ -494,9 +510,11 @@ ErrorHandler::error_dialog_exception(const std::string& exception)
 }
 
 void
-ErrorHandler::report_error(const std::string& details)
+ErrorHandler::report_crash(const std::string& details)
 {
   std::stringstream url;
+
+  constexpr char empty_details[] = "Unable to obtain crash details.";
 
   // cppcheck-suppress unknownMacro
   url << "https://github.com/supertux/supertux/issues/new"
@@ -504,7 +522,8 @@ ErrorHandler::report_error(const std::string& details)
          "&labels=type:crash,status:needs-confirmation"
          "&supertux-version=" << FileSystem::escape_url(PACKAGE_VERSION) <<
          "&system-info=" << FileSystem::escape_url(get_system_info()) <<
-         "&debug-stacktrace=" << FileSystem::escape_url(details);
+         "&debug-stacktrace=" << FileSystem::escape_url(details.empty() ? empty_details
+                                                                        : details);
 
   FileSystem::open_url(url.str());
 }
