@@ -361,11 +361,11 @@ ErrorHandler::handle_error(int sig)
 void
 ErrorHandler::error_dialog_crash(const std::string& stacktrace)
 {
-  char msg[100] = "SuperTux has encountered an unrecoverable error!";
+  std::string msg = "SuperTux has encountered an unrecoverable error!";
 
   if (stacktrace.empty())
   {
-    std::strcpy(msg + std::strlen(msg), "\nUnable to obtain details.");
+    msg += "\nUnable to obtain details.";
   }
 
   std::cerr << msg << "\n" << stacktrace << std::endl;
@@ -397,7 +397,7 @@ ErrorHandler::error_dialog_crash(const std::string& stacktrace)
     SDL_MESSAGEBOX_ERROR, // flags
     nullptr, // window
     "Error", // title
-    msg, // message
+    msg.data(), // message
     SDL_arraysize(btns), // numbuttons
     btns, // buttons
     nullptr // colorscheme
