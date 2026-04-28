@@ -76,7 +76,7 @@ static PCONTEXT pcontext = NULL;
 std::string
 dewrangle(const std::string& symbol)
 {
-#ifdef __GLIBCXX__
+#if defined(__GLIBCXX__) && !defined(WIN32)
   // backtrace_symbols does not dewrangle c++ functions (for good reason). there
   // are probably much more briliant ways to get the backtrace (and directly
   // just their symbols) but i am too damn tired to look, so just substr the
