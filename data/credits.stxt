@@ -8,6 +8,18 @@
 
   (text
     (type "heading")
+    (string (_ "Quest VR Port"))
+  )
+  (blank)
+
+  (person
+    (name "Sgt.Bilko")
+  )
+
+  (blank 24)
+
+  (text
+    (type "heading")
     (string (_ "The SuperTux Team"))
   )
   (blank)
