@@ -37,6 +37,7 @@
 #include "supertux/tile_manager.hpp"
 #include "supertux/tile_set.hpp"
 #include "video/ttf_surface_manager.hpp"
+#include "vr/vr_system.hpp"
 
 class ConfigSubsystem final
 {
@@ -109,6 +110,9 @@ private:
   std::unique_ptr<ConsoleBuffer> m_console_buffer;
   std::unique_ptr<InputManager> m_input_manager;
   std::unique_ptr<VideoSystem> m_video_system;
+#ifdef ENABLE_OPENXR
+  std::unique_ptr<VRSystem> m_vr_system;
+#endif
   std::unique_ptr<TTFSurfaceManager> m_ttf_surface_manager;
   std::unique_ptr<SoundManager> m_sound_manager;
   std::unique_ptr<SquirrelVirtualMachine> m_squirrel_virtual_machine;

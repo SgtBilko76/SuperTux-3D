@@ -15,6 +15,9 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "util/file_system.hpp"
+
+#include <config.h>
+
 #include "supertux/globals.hpp"
 
 #include <physfs.h>
@@ -38,7 +41,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-#else
+#elif defined(HAVE_CURL)
 #include <curl/curl.h>
 #endif
 

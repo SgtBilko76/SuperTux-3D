@@ -10,6 +10,18 @@ if (rootProject.file("${rootDir}/local.properties").exists()) {
 final APP_ID = "org.supertux.supertux2"
 final TARGET_SDK = 35
 
+// -Pndk_version=<version> or ndk_version=<version> in local.properties
+// overrides the NDK used (it has to match the one vcpkg built the
+// dependencies with).
+final NDK_VERSION = project.hasProperty("ndk_version") ? project.property("ndk_version") : props.getProperty("ndk_version", "29.0.14206865")
+
+// -Popenxr=true (or openxr=true in local.properties) builds the VR
+// (Meta Quest) variant, requires the openxr-loader vcpkg port.
+final ENABLE_OPENXR = project.hasProperty("openxr") ? project.property("openxr").toString() : props.getProperty("openxr", "false")
+
+// -Pnetworking=false skips the add-on downloader and the libcurl dependency.
+final ENABLE_NETWORKING = project.hasProperty("networking") ? project.property("networking").toString() : props.getProperty("networking", "true")
+
 android {
     namespace APP_ID
     compileSdkVersion TARGET_SDK
@@ -31,7 +43,7 @@ android {
         versionCode 7
         versionName "0.7.0"
 
-        ndkVersion "29.0.14206865"
+        ndkVersion NDK_VERSION
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_PLATFORM=android-" + android.compileSdk.toString(),
@@ -42,9 +54,11 @@ android {
                           "-DSUPERTUX_NDK_HOME=" + props.getProperty("ndk_home", ""),
                           "-DVCPKG_MANIFEST_MODE=OFF",
                           "-DVCPKG_VERBOSE=ON",
-                          // FIXME: OpenGL is not working on Android right now.
-                          // This is because the shader is not compatible with GLES2.
-                          "-DENABLE_OPENGL=OFF",
+                          // OpenGL ES 3 renderer (needed for VR); the game falls
+                          // back to the SDL renderer at runtime if it fails.
+                          "-DENABLE_OPENGL=ON",
+                          "-DENABLE_OPENXR=" + ENABLE_OPENXR,
+                          "-DENABLE_NETWORKING=" + ENABLE_NETWORKING,
                           "-DUSE_SYSTEM_SDL2_TTF=ON",
                           "-DANDROID_ALLOW_UNDEFINED_SYMBOLS=OFF", // Literally what the fuck
                           //"--debug-find", // If something isn't being found, uncomment this
@@ -76,10 +90,15 @@ android {
         }
     }
 
+    // Prebuilt native libraries (e.g. from an out-of-gradle CMake build,
+    // see README-quest.md) are picked up from app/libs/<abi>/.
+    sourceSets.main {
+        jniLibs.srcDir 'libs'
+    }
+
+    // -PEXCLUDE_NATIVE_LIBS=1 skips the CMake build and only packages
+    // whatever is in app/libs/.
     if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
-        sourceSets.main {
-            jniLibs.srcDir 'libs'
-        }
         externalNativeBuild {
             cmake {
                 path '../../../CMakeLists.txt'

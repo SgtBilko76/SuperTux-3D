@@ -41,7 +41,10 @@ GLProgram::GLProgram() :
 {
   assert_gl();
 
-#if defined(USE_OPENGLES2)
+#if defined(USE_OPENGLES3)
+  m_frag_shader = GLShader::from_file(GL_FRAGMENT_SHADER, "shader/shader300es.frag");
+  m_vert_shader = GLShader::from_file(GL_VERTEX_SHADER, "shader/shader300es.vert");
+#elif defined(USE_OPENGLES2)
   m_frag_shader = GLShader::from_file(GL_FRAGMENT_SHADER, "shader/shader100.frag");
   m_vert_shader = GLShader::from_file(GL_VERTEX_SHADER, "shader/shader100.vert");
 #else

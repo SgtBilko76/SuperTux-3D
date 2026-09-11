@@ -1,6 +1,7 @@
 # Build Files
 build/
 build.*/
+build-*/
 **/CMakeFiles/
 **/CMakeCache.txt
 ./supertux2
@@ -101,3 +102,4 @@ ehthumbs.db
 Thumbs.db
 .directory
 *~
+mk/android/app/libs/

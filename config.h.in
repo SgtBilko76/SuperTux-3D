@@ -20,8 +20,10 @@
 #cmakedefine HAVE_OPENGL
 #cmakedefine HAVE_GLEW
 #cmakedefine HAVE_EPOXY
+#cmakedefine USE_OPENGLES3
 #cmakedefine USE_OPENGLES2
 #cmakedefine USE_OPENGLES1
+#cmakedefine ENABLE_OPENXR
 #cmakedefine FLATPAK
 
 #cmakedefine HAVE_CURL

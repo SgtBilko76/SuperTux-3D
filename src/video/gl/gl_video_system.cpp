@@ -32,6 +32,7 @@
 #include "video/glutil.hpp"
 #include "video/sdl_surface.hpp"
 #include "video/texture_manager.hpp"
+#include "vr/vr_system.hpp"
 
 #ifdef USE_GLBINDING
 #  include <glbinding/Binding.h>
@@ -87,7 +88,7 @@ GLVideoSystem::GLVideoSystem(bool use_opengl33core, bool auto_opengl_version) :
 
   assert_gl();
 
-#if defined(USE_OPENGLES2)
+#if defined(USE_OPENGLES2) || defined(USE_OPENGLES3)
   m_context.reset(new GL33CoreContext(*this));
   m_use_opengl33core = true;
 #elif defined(USE_OPENGLES1)
@@ -177,7 +178,18 @@ GLVideoSystem::create_gl_window()
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  5);
 
-#if defined(USE_OPENGLES2)
+#if defined(USE_OPENGLES3)
+  log_info << "Requesting OpenGLES3 context" << std::endl;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  8);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+#elif defined(USE_OPENGLES2)
   log_info << "Requesting OpenGLES2 context" << std::endl;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -230,7 +242,7 @@ GLVideoSystem::create_gl_context()
   set_vsync(g_config->vsync);
   assert_gl();
 
-#if defined(USE_OPENGLES2)
+#if defined(USE_OPENGLES2) || defined(USE_OPENGLES3)
   // Nothing to do.
 #elif defined(USE_OPENGLES1)
   // Nothing to do.
@@ -318,6 +330,17 @@ GLVideoSystem::apply_config()
   m_viewport = Viewport::from_size(g_config->window_size, g_config->window_size);
 #endif
 
+#ifdef ENABLE_OPENXR
+  if (VRSystem* vr = VRSystem::current())
+  {
+    // In VR the logical screen is fixed; the per-eye render targets are
+    // managed by the VR system and don't depend on the SDL window at all.
+    const Size logical_size = vr->get_logical_size();
+    m_viewport = Viewport(Rect(0, 0, logical_size), Vector(1.0f, 1.0f));
+    vr->apply_config();
+  }
+#endif
+
   // If already set, turn it off. The code afterwards won't harm anything.
   if (m_back_renderer && !g_config->fancy_gfx)
   {
@@ -355,10 +378,42 @@ GLVideoSystem::new_texture(const SDL_Surface& image, const Sampler& sampler)
   return TexturePtr(new GLTexture(image, sampler));
 }
 
+int
+GLVideoSystem::begin_frame()
+{
+#ifdef ENABLE_OPENXR
+  if (VRSystem* vr = VRSystem::current())
+    return vr->begin_frame();
+#endif
+  return 1;
+}
+
+void
+GLVideoSystem::set_current_view(int view)
+{
+#ifdef ENABLE_OPENXR
+  if (VRSystem* vr = VRSystem::current())
+    vr->set_current_view(view);
+#else
+  (void)view;
+#endif
+}
+
 void
 GLVideoSystem::flip()
 {
   assert_gl();
+
+#ifdef ENABLE_OPENXR
+  if (VRSystem* vr = VRSystem::current())
+  {
+    // The headset compositor presents the frame; the SDL window is
+    // never visible on a VR headset, so skip the (vsynced) swap.
+    vr->end_frame();
+    return;
+  }
+#endif
+
   SDL_GL_SwapWindow(m_sdl_window.get());
 
 #ifdef WIN32
@@ -429,6 +484,27 @@ GLVideoSystem::make_screenshot()
 
   SDLSurfacePtr surface = SDLSurface::create_rgb(viewport_width, viewport_height);
 
+#if defined(USE_OPENGLES2) || defined(USE_OPENGLES3)
+  // OpenGL ES only guarantees RGBA/UNSIGNED_BYTE for glReadPixels.
+  std::vector<char> pixels(4 * viewport_width * viewport_height);
+
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glReadPixels(viewport_x, viewport_y, viewport_width, viewport_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+  SDL_LockSurface(surface.get());
+  for (int i = 0; i < viewport_height; i++)
+  {
+    const char* src = &pixels[4 * viewport_width * (viewport_height - i - 1)];
+    char* dst = (static_cast<char*>(surface->pixels)) + i * surface->pitch;
+    for (int x = 0; x < viewport_width; ++x)
+    {
+      dst[3 * x + 0] = src[4 * x + 0];
+      dst[3 * x + 1] = src[4 * x + 1];
+      dst[3 * x + 2] = src[4 * x + 2];
+    }
+  }
+  SDL_UnlockSurface(surface.get());
+#else
   std::vector<char> pixels(3 * viewport_width * viewport_height);
 
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -442,6 +518,7 @@ GLVideoSystem::make_screenshot()
     memcpy(dst, src, 3 * viewport_width);
   }
   SDL_UnlockSurface(surface.get());
+#endif
 
   assert_gl();
 

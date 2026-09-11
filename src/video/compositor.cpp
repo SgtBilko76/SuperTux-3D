@@ -78,8 +78,10 @@ Compositor::render()
     lightmap.end_draw();
   }
 
+  const int view_count = m_video_system.begin_frame();
+
   auto back_renderer = m_video_system.get_back_renderer();
-  if (back_renderer)
+  if (back_renderer && view_count > 0)
   {
     back_renderer->start_draw();
 
@@ -91,8 +93,11 @@ Compositor::render()
     back_renderer->end_draw();
   }
 
-  // Compose the screen.
+  // Compose the screen, once per view (twice for stereoscopic VR).
+  for (int view = 0; view < view_count; ++view)
   {
+    m_video_system.set_current_view(view);
+
     auto& renderer = m_video_system.get_renderer();
 
     renderer.start_draw();

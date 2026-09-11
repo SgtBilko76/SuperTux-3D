@@ -7,13 +7,13 @@ attribute vec4 diffuse;
 varying mediump vec2 texcoord_var;
 varying lowp vec4 diffuse_var;
 
-uniform mat3 modelviewprojection;
+uniform mat4 modelviewprojection;
 
 void main(void)
 {
   texcoord_var = texcoord;
   diffuse_var = diffuse;
-  gl_Position = vec4(vec3(position, 1) * modelviewprojection, 1.0);
+  gl_Position = modelviewprojection * vec4(position, 0.0, 1.0);
 }
 
 /* EOF */

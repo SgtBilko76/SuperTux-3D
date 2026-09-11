@@ -158,6 +158,7 @@ endif()
 
 option(ENABLE_OPENGL "Enable OpenGL support" ON)
 option(ENABLE_NETWORKING "Turns on networking features, thus requiring libcurl" ON)
+option(ENABLE_OPENXR "Enable OpenXR support for VR headsets (Android/Meta Quest, requires OpenGL ES)" OFF)
 
 # CI builds should never rely on this, as system SDL2_TTF has no RAQM support, causing Arabic to not be rendered properly.
 # TODO: SDL3
@@ -250,9 +251,9 @@ set(HAVE_EPOXY NO)
 if(NOT ENABLE_OPENGL)
   message(STATUS "OpenGL support is disabled, as requested.")
 elseif(ANDROID)
-  # SDL already adds OpenGLES to the linker command
+  # Android uses OpenGL ES 3 (linked explicitly further below)
   set(HAVE_OPENGL YES)
-  set(USE_OPENGLES2 YES)
+  set(USE_OPENGLES3 YES)
 elseif(NOT EMSCRIPTEN)
   set(OpenGL_GL_PREFERENCE "LEGACY")
   find_package(OpenGL QUIET)
@@ -480,8 +481,23 @@ if(NOT EMSCRIPTEN)
 endif()
 
 if(ANDROID)
-  target_link_libraries(supertux2 PUBLIC log)
+  target_link_libraries(supertux2 PUBLIC log android)
   target_compile_definitions(supertux2 PUBLIC -D__ANDROID__ -DANDROID)
+  if(HAVE_OPENGL)
+    target_link_libraries(supertux2 PUBLIC GLESv3 EGL)
+  endif()
+endif()
+
+if(ENABLE_OPENXR)
+  if(NOT ANDROID)
+    message(FATAL_ERROR "ENABLE_OPENXR is currently only supported for Android (Meta Quest) builds")
+  endif()
+  if(NOT HAVE_OPENGL)
+    message(FATAL_ERROR "ENABLE_OPENXR requires ENABLE_OPENGL")
+  endif()
+  find_package(OpenXR CONFIG REQUIRED)
+  message(STATUS "OpenXR found, enabling VR support")
+  target_link_libraries(supertux2 PUBLIC OpenXR::openxr_loader)
 endif()
 
 ## Install stuff

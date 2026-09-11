@@ -19,6 +19,9 @@
 #include "video/gl/gl_context.hpp"
 
 #include <memory>
+#include <optional>
+
+#include "video/layer_projection.hpp"
 
 class GLProgram;
 class GLTexture;
@@ -36,6 +39,8 @@ public:
   virtual void bind() override;
 
   virtual void ortho(float width, float height, bool vflip) override;
+  virtual void set_stereo_projection(const StereoLayerProjection& projection) override;
+  virtual void set_layer(int layer) override;
 
   virtual void blend_func(GLenum src, GLenum dst) override;
 
@@ -68,6 +73,14 @@ private:
   std::unique_ptr<GLTexture> m_grey_texture;
   std::unique_ptr<GLTexture> m_transparent_texture;
   int m_blur;
+
+  /** Active stereo projection, or nullopt when rendering flat (ortho) */
+  std::optional<StereoLayerProjection> m_stereo;
+  /** Layer whose projection is currently uploaded (stereo mode only) */
+  int m_stereo_layer;
+
+private:
+  void upload_mvp(const glm::mat4& mvp);
 
 private:
   GL33CoreContext(const GL33CoreContext&) = delete;

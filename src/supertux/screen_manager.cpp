@@ -41,6 +41,7 @@
 #include "supertux/screen_fade.hpp"
 #include "supertux/sector.hpp"
 #include "util/log.hpp"
+#include "vr/vr_system.hpp"
 #include "video/compositor.hpp"
 #include "video/drawing_context.hpp"
 
@@ -342,6 +343,10 @@ void
 ScreenManager::process_events()
 {
   m_input_manager.update();
+#ifdef ENABLE_OPENXR
+  if (VRSystem* vr = VRSystem::current())
+    vr->poll_input(m_input_manager.get_controller());
+#endif
   SDL_Event event;
   auto session = GameSession::current();
   while (SDL_PollEvent(&event))
@@ -440,6 +445,11 @@ ScreenManager::process_events()
         break;
 
       case SDL_EVENT_WINDOW_RESIZED:
+#ifdef ENABLE_OPENXR
+        // The SDL window is irrelevant in VR; the logical screen size is fixed.
+        if (VRSystem::current())
+          break;
+#endif
         m_video_system.on_resize(event.window.data1, event.window.data2);
         on_window_resize();
         break;

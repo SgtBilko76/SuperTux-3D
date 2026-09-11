@@ -25,6 +25,9 @@
 #include "video/gl/gl_vertex_arrays.hpp"
 #include "video/gl/gl_video_system.hpp"
 #include "video/glutil.hpp"
+#include "video/layer_projection.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 GL33CoreContext::GL33CoreContext(GLVideoSystem& video_system) :
@@ -35,7 +38,9 @@ GL33CoreContext::GL33CoreContext(GLVideoSystem& video_system) :
   m_black_texture(),
   m_grey_texture(),
   m_transparent_texture(),
-  m_blur()
+  m_blur(),
+  m_stereo(),
+  m_stereo_layer(0)
 {
   assert_gl();
 
@@ -117,22 +122,44 @@ GL33CoreContext::bind()
 void
 GL33CoreContext::ortho(float width, float height, bool vflip)
 {
+  m_stereo.reset();
+
+  // Logical coordinates have their origin in the top-left corner with y
+  // pointing down. When drawing to the screen (vflip) y=0 must map to the
+  // top of the window, when drawing to a texture it maps to the bottom so
+  // that the texture ends up the right way round when sampled.
+  const glm::mat4 mvp = vflip ?
+    glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f) :
+    glm::ortho(0.0f, width, 0.0f, height, -1.0f, 1.0f);
+
+  upload_mvp(mvp);
+}
+
+void
+GL33CoreContext::set_stereo_projection(const StereoLayerProjection& projection)
+{
+  m_stereo = projection;
+  m_stereo_layer = projection.reference_layer;
+  upload_mvp(m_stereo->mvp_for_layer(m_stereo_layer));
+}
+
+void
+GL33CoreContext::set_layer(int layer)
+{
+  if (!m_stereo || layer == m_stereo_layer)
+    return;
+
+  m_stereo_layer = layer;
+  upload_mvp(m_stereo->mvp_for_layer(layer));
+}
+
+void
+GL33CoreContext::upload_mvp(const glm::mat4& mvp)
+{
   assert_gl();
 
-  const float sx = 2.0f / static_cast<float>(width);
-  const float sy = -2.0f / static_cast<float>(height) * (vflip ? 1.0f : -1.0f);
-
-  const float tx = -1.0f;
-  const float ty = 1.0f * (vflip ? 1.0f : -1.0f);
-
-  const float mvp_matrix[] = {
-    sx, 0, tx,
-    0, sy, ty,
-    0, 0, 1
-  };
-
   const GLint mvp_loc = m_program->get_modelviewprojection_location();
-  glUniformMatrix3fv(mvp_loc, 1, false, mvp_matrix);
+  glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, &mvp[0][0]);
 
   assert_gl();
 }

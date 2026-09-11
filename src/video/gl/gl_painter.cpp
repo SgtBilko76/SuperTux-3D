@@ -167,6 +167,7 @@ GLPainter::draw_texture(const DrawingRequest& draw_req)
 
   GLContext& context = m_video_system.get_context();
 
+  context.set_layer(draw_req.layer);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_texture(texture, request.displacement_texture);
   context.set_texcoords(m_uvs.data(), sizeof(float) * m_uvs.size());
@@ -201,6 +202,7 @@ GLPainter::draw_gradient(const DrawingRequest& draw_req)
     region.get_left(), region.get_bottom()
   };
 
+  context.set_layer(draw_req.layer);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_no_texture();
   context.set_positions(vertices, sizeof(vertices));
@@ -240,6 +242,7 @@ GLPainter::draw_filled_rect(const DrawingRequest& draw_req)
 
   GLContext& context = m_video_system.get_context();
 
+  context.set_layer(draw_req.layer);
   context.set_blur(request.blur);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_no_texture();
@@ -388,6 +391,7 @@ GLPainter::draw_inverse_ellipse(const DrawingRequest& draw_req)
 
   GLContext& context = m_video_system.get_context();
 
+  context.set_layer(draw_req.layer);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_no_texture();
   context.set_positions(vertices, sizeof(vertices));
@@ -432,6 +436,7 @@ GLPainter::draw_line(const DrawingRequest& draw_req)
 
   GLContext& context = m_video_system.get_context();
 
+  context.set_layer(draw_req.layer);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_no_texture();
   context.set_positions(vertices, sizeof(vertices));
@@ -457,6 +462,7 @@ GLPainter::draw_triangle(const DrawingRequest& draw_req)
 
   GLContext& context = m_video_system.get_context();
 
+  context.set_layer(draw_req.layer);
   context.blend_func(sfactor(draw_req.blend), dfactor(draw_req.blend));
   context.bind_no_texture();
   context.set_texcoord(0.0f, 0.0f);
@@ -505,6 +511,17 @@ GLPainter::get_pixel(const DrawingRequest& draw_req) const
   *(request.color_ptr) = pixel_request.get_color();
 
 #else
+#if defined(USE_OPENGLES2) || defined(USE_OPENGLES3)
+  // OpenGL ES only guarantees RGBA/UNSIGNED_BYTE for glReadPixels.
+  unsigned char pixels[4] = { 0, 0, 0, 0 };
+
+  glReadPixels(static_cast<GLint>(x), static_cast<GLint>(y),
+               1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+  *(request.color_ptr) = Color(static_cast<float>(pixels[0]) / 255.0f,
+                               static_cast<float>(pixels[1]) / 255.0f,
+                               static_cast<float>(pixels[2]) / 255.0f);
+#else
   float pixels[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   // OpenGLES2 does not have PBOs, only GLES3 has.
@@ -512,6 +529,7 @@ GLPainter::get_pixel(const DrawingRequest& draw_req) const
                1, 1, GL_RGB, GL_FLOAT, pixels);
 
   *(request.color_ptr) = Color(pixels[0], pixels[1], pixels[2]);
+#endif
 #endif
 
   assert_gl();

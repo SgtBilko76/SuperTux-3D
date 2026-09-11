@@ -16,6 +16,7 @@
 
 #include "video/gl/gl_vertex_arrays.hpp"
 
+
 #include "video/color.hpp"
 #include "video/gl/gl33core_context.hpp"
 #include "video/gl/gl_program.hpp"
@@ -52,7 +53,40 @@ GLVertexArrays::bind()
 {
   assert_gl();
 
+#if defined(USE_OPENGLES3)
+  // Client-side vertex arrays (see upload()) are only allowed with the
+  // default vertex array object bound.
+  glBindVertexArray(0);
+#else
   glBindVertexArray(m_vao);
+#endif
+
+  assert_gl();
+}
+
+void
+GLVertexArrays::upload(GLuint buffer, const float* data, size_t size, GLint location, GLint components)
+{
+  assert_gl();
+
+#if defined(USE_OPENGLES3)
+  // Mobile GPU drivers (Adreno in particular) allocate and map fresh GPU
+  // memory for every glBufferData/glMapBufferRange, which with the
+  // hundreds of small draws SuperTux issues per frame costs far more than
+  // the drawing itself. Client-side arrays let the driver copy the vertex
+  // data straight into its command stream instead. The caller keeps the
+  // data alive until the draw call.
+  (void)buffer;
+  (void)size;
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glVertexAttribPointer(location, components, GL_FLOAT, GL_FALSE, 0, data);
+#else
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(location, components, GL_FLOAT, GL_FALSE, 0, nullptr);
+#endif
+
+  glEnableVertexAttribArray(location);
 
   assert_gl();
 }
@@ -60,31 +94,13 @@ GLVertexArrays::bind()
 void
 GLVertexArrays::set_positions(const float* data, size_t size)
 {
-  assert_gl();
-
-  glBindBuffer(GL_ARRAY_BUFFER, m_positions_buffer);
-  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-
-  int loc = m_context.get_program().get_position_location();
-  glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-  glEnableVertexAttribArray(loc);
-
-  assert_gl();
+  upload(m_positions_buffer, data, size, m_context.get_program().get_position_location(), 2);
 }
 
 void
 GLVertexArrays::set_texcoords(const float* data, size_t size)
 {
-  assert_gl();
-
-  glBindBuffer(GL_ARRAY_BUFFER, m_texcoords_buffer);
-  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-
-  int loc = m_context.get_program().get_texcoord_location();
-  glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-  glEnableVertexAttribArray(loc);
-
-  assert_gl();
+  upload(m_texcoords_buffer, data, size, m_context.get_program().get_texcoord_location(), 2);
 }
 
 void
@@ -102,16 +118,7 @@ GLVertexArrays::set_texcoord(float u, float v)
 void
 GLVertexArrays::set_colors(const float* data, size_t size)
 {
-  assert_gl();
-
-  glBindBuffer(GL_ARRAY_BUFFER, m_color_buffer);
-  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-
-  int loc = m_context.get_program().get_diffuse_location();
-  glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-  glEnableVertexAttribArray(loc);
-
-  assert_gl();
+  upload(m_color_buffer, data, size, m_context.get_program().get_diffuse_location(), 4);
 }
 
 void

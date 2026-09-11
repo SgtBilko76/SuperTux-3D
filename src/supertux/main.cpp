@@ -90,6 +90,7 @@ extern "C" {
 #include "video/sdl_surface.hpp"
 #include "video/sdl_surface_ptr.hpp"
 #include "video/ttf_surface_manager.hpp"
+#include "vr/vr_system.hpp"
 #include "worldmap/worldmap.hpp"
 
 static Timelog s_timelog;
@@ -604,7 +605,43 @@ Main::launch_game(const CommandLineArguments& args)
   }
   s_timelog.log("video");
 
+#ifdef ENABLE_OPENXR
+  if (video != VideoSystem::VIDEO_NULL)
+  {
+    // Stereoscopic rendering is only implemented on the OpenGL backend.
+    video = VideoSystem::VIDEO_OPENGL33CORE;
+    // The headset paces frames itself; draw every frame with interpolation
+    // instead of only when a logic step happened, and don't vsync the
+    // (invisible) SDL window on top of that.
+    g_config->frame_prediction = true;
+    g_config->vsync = 0;
+    // Screen-space effects don't map onto the per-layer stereo projection.
+    g_config->fancy_gfx = false;
+    // Touch controls make no sense on a headset.
+    g_config->mobile_controls = false;
+    // Single player only: don't add players for extra gamepads.
+    g_config->multiplayer_auto_manage_players = false;
+  }
+#endif
+
   m_video_system = VideoSystem::create(video);
+
+#ifdef ENABLE_OPENXR
+  if (video != VideoSystem::VIDEO_NULL)
+  {
+    try
+    {
+      m_vr_system.reset(new VRSystem());
+      // Re-apply so the viewport and lightmap pick up the fixed VR logical size.
+      m_video_system->apply_config();
+    }
+    catch (const std::exception& err)
+    {
+      log_warning << "VR unavailable, running flat: " << err.what() << std::endl;
+      m_vr_system.reset();
+    }
+  }
+#endif
 #else
   // Force SDL for WASM builds, as OpenGL is reportedly slow on some devices
   m_video_system = VideoSystem::create(VideoSystem::VIDEO_SDL);

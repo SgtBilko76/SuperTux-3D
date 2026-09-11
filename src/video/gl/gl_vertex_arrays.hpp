@@ -41,6 +41,9 @@ public:
   void set_color(const Color& color);
 
 private:
+  void upload(GLuint buffer, const float* data, size_t size, GLint location, GLint components);
+
+private:
   GL33CoreContext& m_context;
   GLuint m_vao;
   GLuint m_positions_buffer;

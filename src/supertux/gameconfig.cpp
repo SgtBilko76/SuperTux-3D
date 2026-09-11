@@ -72,6 +72,9 @@ Config::Config() :
   screen_shake_mode(ScreenShakeMode::FULL),
   max_viewport(false),
   fancy_gfx(true),
+  vr_screen_distance(3.0f),
+  vr_screen_width(4.0f),
+  vr_depth_strength(1.0f),
   precise_scrolling(true),
   invert_wheel_x(false),
   invert_wheel_y(false),
@@ -348,6 +351,9 @@ Config::load()
     config_video_mapping->get("magnification", magnification);
     config_video_mapping->get("fancy_gfx", fancy_gfx);
     config_video_mapping->get("max_viewport", max_viewport);
+    config_video_mapping->get("vr_screen_distance", vr_screen_distance);
+    config_video_mapping->get("vr_screen_width", vr_screen_width);
+    config_video_mapping->get("vr_depth_strength", vr_depth_strength);
 
     Viewport::force_full_viewport(max_viewport, true);
 
@@ -547,6 +553,9 @@ Config::save()
   writer.write("magnification", magnification);
   writer.write("fancy_gfx", fancy_gfx);
   writer.write("max_viewport", max_viewport);
+  writer.write("vr_screen_distance", vr_screen_distance);
+  writer.write("vr_screen_width", vr_screen_width);
+  writer.write("vr_depth_strength", vr_depth_strength);
 
   writer.end_list("video");
 

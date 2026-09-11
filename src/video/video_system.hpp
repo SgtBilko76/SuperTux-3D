@@ -72,6 +72,16 @@ public:
 
   virtual const Viewport& get_viewport() const = 0;
   virtual void apply_config() = 0;
+
+  /** Called once per frame before anything is drawn. Returns the
+      number of times the screen has to be composed (1 normally, 2
+      for stereoscopic VR, 0 to skip drawing this frame). */
+  virtual int begin_frame() { return 1; }
+
+  /** Select which view (eye) the following draws go to, see begin_frame() */
+  virtual void set_current_view(int view) { (void)view; }
+
+  /** Present the frame; called after all views have been drawn */
   virtual void flip() = 0;
   virtual void on_resize(int w, int h) = 0;
   virtual SDL_Window* get_window() const = 0;

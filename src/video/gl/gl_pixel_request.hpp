@@ -21,7 +21,7 @@
 #include "video/color.hpp"
 #include "video/gl.hpp"
 
-#ifndef USE_OPENGLES2
+#if !defined(USE_OPENGLES2) && !defined(USE_OPENGLES3)
 
 class GLPixelRequest final
 {

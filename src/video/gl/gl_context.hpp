@@ -24,6 +24,7 @@
 class Color;
 class GLTexture;
 class Texture;
+struct StereoLayerProjection;
 
 class GLContext
 {
@@ -36,6 +37,16 @@ public:
   virtual void bind() = 0;
 
   virtual void ortho(float width, float height, bool vflip) = 0;
+
+  /** Switch to stereoscopic rendering: every layer gets its own
+      projection derived from the given description (see
+      set_layer()). ortho() switches back to flat rendering. Backends
+      without stereo support ignore this. */
+  virtual void set_stereo_projection(const StereoLayerProjection& projection) { (void)projection; }
+
+  /** Select the drawing layer of the following draw calls, used to
+      pick the per-layer projection in stereo mode. No-op otherwise. */
+  virtual void set_layer(int layer) { (void)layer; }
 
   virtual void blend_func(GLenum src, GLenum dst) = 0;
   

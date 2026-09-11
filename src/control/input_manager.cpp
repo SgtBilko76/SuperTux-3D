@@ -24,6 +24,7 @@
 #include "supertux/gameconfig.hpp"
 #include "supertux/globals.hpp"
 #include "util/log.hpp"
+#include "vr/vr_system.hpp"
 
 static constexpr int MAX_PLAYERS = 4;
 
@@ -58,6 +59,11 @@ InputManager::get_controller(int player_id)
 bool
 InputManager::can_add_user() const
 {
+#ifdef ENABLE_OPENXR
+  // The VR port is single player only.
+  if (VRSystem::current())
+    return false;
+#endif
   return get_num_users() < MAX_PLAYERS || g_config->multiplayer_no_limit;
 }
 

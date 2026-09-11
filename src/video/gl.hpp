@@ -20,10 +20,14 @@
 
 #ifdef HAVE_OPENGL
 
-#if defined(USE_OPENGLES2)
-#  include <SDL_opengles2.h>
+#if defined(USE_OPENGLES3)
+#  include <GLES3/gl3.h>
+#  include <GLES2/gl2ext.h>
+#  define GL_NONE_BIT 0
+#elif defined(USE_OPENGLES2)
+#  include <SDL3/SDL_opengles2.h>
 #elif defined(USE_OPENGLES1)
-#  include <SDL_opengles.h>
+#  include <SDL3/SDL_opengles.h>
 #elif defined(HAVE_EPOXY)
 #  include <epoxy/gl.h>
 #  define GL_NONE_BIT 0

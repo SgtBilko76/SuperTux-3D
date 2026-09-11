@@ -21,7 +21,7 @@
 #include "util/log.hpp"
 #include "video/glutil.hpp"
 
-#ifndef USE_OPENGLES2
+#if !defined(USE_OPENGLES2) && !defined(USE_OPENGLES3)
 
 GLPixelRequest::GLPixelRequest(int width, int height) :
   m_buffer(),

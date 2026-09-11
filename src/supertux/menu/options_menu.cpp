@@ -38,6 +38,7 @@
 #include "video/renderer.hpp"
 #include "video/video_system.hpp"
 #include "video/viewport.hpp"
+#include "vr/vr_system.hpp"
 
 #include <cassert>
 #include <sstream>
@@ -210,6 +211,9 @@ OptionsMenu::refresh()
         add_submenu(_("Select Profile"), MenuStorage::PROFILE_MENU)
           .set_help(_("Select a profile to play with"));
 
+#ifdef ENABLE_OPENXR
+      if (!VRSystem::current()) // The VR port is single player only.
+#endif
       add_submenu(_("Multiplayer settings"), MenuStorage::MULTIPLAYER_MENU)
         .set_help(_("Configure settings specific to multiplayer"));
 

@@ -51,6 +51,8 @@ public:
 
   virtual const Viewport& get_viewport() const override { return m_viewport; }
   virtual void apply_config() override;
+  virtual int begin_frame() override;
+  virtual void set_current_view(int view) override;
   virtual void flip() override;
 
   virtual void set_vsync(int mode) override;

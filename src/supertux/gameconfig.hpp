@@ -101,6 +101,13 @@ public:
   /** Toggles fancy graphical effects like displacement or blur (primarily for the GL backend) */
   bool fancy_gfx;
 
+  /** VR: distance from the viewer to the virtual screen, in meters */
+  float vr_screen_distance;
+  /** VR: width of the virtual screen, in meters */
+  float vr_screen_width;
+  /** VR: how far the drawing layers are spread out in depth (0 = flat, 1 = default) */
+  float vr_depth_strength;
+
   /** initial random seed.  0 ==> set from time() */
   int random_seed;
 
