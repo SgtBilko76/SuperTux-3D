@@ -1,7 +1,44 @@
-# SuperTux
+# SuperTux Quest VR
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-SgtBilko76-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/SgtBilko76)
 
+[SuperTux](https://www.supertux.org/), the classic open-source jump'n'run, running standalone on Meta Quest (Quest 2 / 3 / 3S / Pro) through OpenXR.
+
+The game is shown on a virtual screen in front of you, with each drawing layer at its own depth: backgrounds sit farther back, and the HUD and menus float closer. Moving your head gives real parallax.
+
+## Install
+
+1. Enable developer mode on your Quest.
+2. Download the APK from the [Releases](../../releases) page.
+3. Sideload it with [SideQuest](https://sidequestvr.com/) or `adb install -r <file>.apk`.
+4. Launch it from *Library → Unknown Sources*.
+
+## Controls
+
+| Controller input | Game control |
+|---|---|
+| Left thumbstick | Move |
+| Right thumbstick | Peek (look around) |
+| A / left trigger | Jump (select in menus) |
+| B | Back (in menus) |
+| X / right trigger | Action (run, grab, shoot) |
+| Y | Item |
+| Left / right grip | Peek left / right |
+| Menu button | Pause |
+| Left thumbstick click | Recenter screen |
+
+## Notes
+
+- Single player only. Screen-space effects (displacement, blur) are disabled in VR.
+- With no OpenXR runtime present, the game falls back to normal 2D mode.
+
+---
+
+## Original SuperTux README
+
+> Below is the upstream project's README, kept for credits, licensing and desktop build instructions.
+
+## SuperTux
 
 [![Windows](https://github.com/SuperTux/supertux/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/SuperTux/supertux/actions/workflows/windows.yml?branch=master)
 [![MacOS](https://github.com/SuperTux/supertux/actions/workflows/macos.yml/badge.svg?branch=master)](https://github.com/SuperTux/supertux/actions/workflows/macos.yml?branch=master)
@@ -20,8 +57,7 @@ power-ups and other stuff on the way.
 
 ![Screenshot](https://www.supertux.org/images/0_7_0/github_preview.png)
 
-
-## Story: Penny gets captured!
+### Story: Penny gets captured!
 
 Tux and Penny were out having a nice picnic on the ice fields of
 Antarctica. Suddenly, a creature jumped from behind an ice bush, there
@@ -39,7 +75,7 @@ before now lies a letter:
 Tux looks and sees Nolok's fortress in the distance. Determined to
 save his beloved Penny, he begins his journey.
 
-## Installation
+### Installation
 
 For major platforms, stable releases are built and available for download from
 [supertux.org](https://www.supertux.org/download.html) or alternatively directly
@@ -51,7 +87,7 @@ without disabling the Gatekeeper feature entirely, you can open the application
 from the context menu (control click on the icon). macOS will then remember your
 choice the next time.
 
-## Documentation
+### Documentation
 
 Important documentation for SuperTux is contained in multiple files.
 Please see them:
@@ -65,8 +101,7 @@ CC-by-SA)
 * `data/credits.stxt` - Credits for people that contributed to the creation of
 SuperTux. (You can view these in the game menu as well.)
 
-
-## Playing the game
+### Playing the game
 
 Both keyboards and joysticks/gamepads are supported. You can view/change the
 controls via **options > controls**. Basically, the only controls you will need
@@ -80,7 +115,7 @@ Other useful keys include the Esc key, which is used to go to the menu
 or to go up a level in the menu. The menu can be navigated using the
 arrow keys or the mouse.
 
-## Community
+### Community
 
 In case you need help, feel free to reach out using the following means:
 
