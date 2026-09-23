@@ -1,7 +1,9 @@
-# SuperTux VR for Meta Quest
+# SuperTux VR for Meta Quest and PICO
 
 This builds SuperTux as a standalone APK for the Meta Quest headsets
-(Quest 2 / 3 / 3S / Pro). The game is rendered stereoscopically through
+(Quest 2 / 3 / 3S / Pro) and for PICO headsets (PICO 4, 4 Ultra, Neo 3).
+One APK covers both: the vendor-specific manifest entries are ignored by
+the other runtime. The game is rendered stereoscopically through
 OpenXR: the flat 2D scene is presented on a large virtual screen in front
 of the player, and every drawing layer is placed at its own depth, so
 backgrounds sit farther away than the tiles while the HUD and menus float
@@ -22,6 +24,9 @@ The Touch controllers are mapped as follows:
 | Left thumbstick click     | Recenter the virtual screen       |
 | Right thumbstick click    | Cheat menu (debug builds only)    |
 
+On PICO the same layout is used, through the
+`XR_BD_controller_interaction` bindings.
+
 A paired bluetooth gamepad or keyboard keeps working alongside.
 
 The APK also runs flat on regular Android devices: if no OpenXR runtime is
@@ -33,7 +38,12 @@ found the game logs a warning and starts in normal 2D mode.
   swapchains and the frame loop (`xrWaitFrame` / `xrEndFrame`). It is
   created in `Main` right after the OpenGL video system.
 * `src/vr/vr_input.*` defines an OpenXR action set with bindings for the
-  Touch controllers and feeds the game's `Controller`.
+  Touch controllers and feeds the game's `Controller`. The PICO profiles
+  (`/interaction_profiles/bytedance/pico4_controller` and
+  `pico_neo3_controller`) are suggested as well when the runtime
+  advertises `XR_BD_controller_interaction`; the extension is requested
+  only in that case, since asking for it on a Quest would fail
+  `xrCreateInstance`.
 * `src/video/layer_projection.hpp` maps a drawing layer to a depth plane.
   The mapping is linear in 1/depth: layer -300 (backgrounds) is twice as
   far as layer 0 (tiles), layer 600 (GUI) is at half the distance.
@@ -112,12 +122,35 @@ vcpkg, git.
 
    (`ANDROID_NDK_HOME` and `VCPKG_ROOT` must be set for the CMake step.)
 
+   Depending on the vcpkg version, SDL3's CMake config exports only
+   `include/`, while the precompiled header includes `<SDL.h>`. If the
+   build stops with `'SDL.h' file not found`, add the header directories
+   to the configure line:
+
+       -DCMAKE_CXX_FLAGS="-isystem $VCPKG_ROOT/installed/arm64-android/include/SDL3 \
+         -isystem $VCPKG_ROOT/installed/arm64-android/include/SDL3_image \
+         -isystem $VCPKG_ROOT/installed/arm64-android/include/SDL3_ttf"
+
 5. Install on the headset (developer mode + USB debugging enabled):
 
        adb install -r app/build/outputs/apk/debug/app-debug.apk
        adb shell am start -n org.supertux.supertux2/.MainActivity
 
    The app shows up under *Library > Unknown Sources* on the headset.
+
+## PICO notes
+
+* PICO OS 5.9.0 or newer is required: only from that version does the
+  PICO runtime work with the generic Khronos OpenXR loader that vcpkg
+  builds. Older firmware needs PICO's own loader library instead.
+* The manifest declares `pvr.app.type=vr` plus the
+  `com.picovr.intent.category.VR` and
+  `org.khronos.openxr.intent.category.IMMERSIVE_HMD` categories, which is
+  what makes the PICO launcher start the app immersively rather than as a
+  flat panel.
+* Without the PICO bindings the game would fall back to
+  `khr/simple_controller`, which has no thumbsticks and therefore no way
+  to walk.
 
 ## Performance notes
 

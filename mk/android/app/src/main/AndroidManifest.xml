@@ -6,8 +6,8 @@
 	<!-- OpenGL ES 3.0 -->
 	<uses-feature android:glEsVersion="0x00030000"/>
 
-	<!-- VR headset (Meta Quest) support via OpenXR. Not required so the
-	     same APK still installs and runs flat on phones/tablets. -->
+	<!-- VR headset (Meta Quest and PICO) support via OpenXR. Not required so
+	     the same APK still installs and runs flat on phones/tablets. -->
 	<uses-feature android:name="android.hardware.vr.headtracking" android:required="false" android:version="1"/>
 	<uses-permission android:name="org.khronos.openxr.permission.OPENXR"/>
 	<uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM"/>
@@ -77,6 +77,9 @@
 		<meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2|questpro|quest3|quest3s|cambria|eureka|panther"/>
 		<meta-data android:name="com.oculus.vr.focusaware" android:value="true"/>
 
+		<!-- PICO: marks this as a VR app for the PICO OS launcher -->
+		<meta-data android:name="pvr.app.type" android:value="vr"/>
+
 		<activity android:name=".MainActivity"
       android:alwaysRetainTaskState="true"
       android:screenOrientation="landscape"
@@ -88,6 +91,10 @@
 				<category android:name="android.intent.category.LAUNCHER"/>
 				<!-- Launch as an immersive VR app on Meta Quest -->
 				<category android:name="com.oculus.intent.category.VR"/>
+				<!-- ... and on PICO headsets -->
+				<category android:name="com.picovr.intent.category.VR"/>
+				<!-- Vendor-neutral OpenXR immersive category -->
+				<category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD"/>
 			</intent-filter>
 			<!-- Let Android know that we can handle some USB devices and should receive this event -->
 			<intent-filter>

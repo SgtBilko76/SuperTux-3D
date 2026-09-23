@@ -109,6 +109,10 @@ bool has_gl_extension(const char* name)
   return extensions && std::strstr(extensions, name) != nullptr;
 }
 
+/** PICO controller bindings. XR_BD_CONTROLLER_INTERACTION_EXTENSION_NAME is
+    not defined by every openxr.h yet, so the name is spelled out. */
+constexpr const char* BD_CONTROLLER_EXTENSION = "XR_BD_controller_interaction";
+
 } // namespace
 
 struct VRSystem::Impl final
@@ -140,6 +144,9 @@ struct VRSystem::Impl final
   XrFrameState frame_state{XR_TYPE_FRAME_STATE};
   XrSessionState session_state = XR_SESSION_STATE_UNKNOWN;
   XrTime last_display_time = 0;
+
+  /** Whether XR_BD_controller_interaction (PICO controllers) is enabled. */
+  bool bd_controller = false;
 
   int64_t swapchain_format = 0;
   bool srgb_write_control = false;
@@ -185,11 +192,36 @@ VRSystem::VRSystem() :
           "xrInitializeLoaderKHR");
   }
 
-  // Instance.
-  const char* extensions[] = {
+  // Instance. XR_BD_controller_interaction is only requested when the runtime
+  // advertises it: PICO headsets need it for their controller bindings, and
+  // asking for an unsupported extension makes xrCreateInstance fail.
+  std::vector<const char*> extensions = {
     XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME,
     XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
   };
+
+  bool bd_controller = false;
+  uint32_t extension_count = 0;
+  if (XR_SUCCEEDED(xrEnumerateInstanceExtensionProperties(nullptr, 0, &extension_count, nullptr)) &&
+      extension_count > 0)
+  {
+    std::vector<XrExtensionProperties> available(extension_count, {XR_TYPE_EXTENSION_PROPERTIES});
+    if (XR_SUCCEEDED(xrEnumerateInstanceExtensionProperties(nullptr, extension_count,
+                                                            &extension_count, available.data())))
+    {
+      for (const XrExtensionProperties& props : available)
+      {
+        if (std::strcmp(props.extensionName, BD_CONTROLLER_EXTENSION) == 0)
+          bd_controller = true;
+      }
+    }
+  }
+
+  if (bd_controller)
+  {
+    extensions.push_back(BD_CONTROLLER_EXTENSION);
+    log_info << "OpenXR: PICO controller bindings available" << std::endl;
+  }
 
   XrInstanceCreateInfoAndroidKHR android_info{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
   android_info.applicationVM = vm;
@@ -197,14 +229,15 @@ VRSystem::VRSystem() :
 
   XrInstanceCreateInfo instance_info{XR_TYPE_INSTANCE_CREATE_INFO};
   instance_info.next = &android_info;
-  instance_info.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
-  instance_info.enabledExtensionNames = extensions;
+  instance_info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+  instance_info.enabledExtensionNames = extensions.data();
   std::strncpy(instance_info.applicationInfo.applicationName, "SuperTux", XR_MAX_APPLICATION_NAME_SIZE - 1);
   instance_info.applicationInfo.applicationVersion = 1;
   std::strncpy(instance_info.applicationInfo.engineName, "SuperTux", XR_MAX_ENGINE_NAME_SIZE - 1);
   instance_info.applicationInfo.engineVersion = 1;
   instance_info.applicationInfo.apiVersion = XR_API_VERSION_1_0;
   check(xrCreateInstance(&instance_info, &impl.instance), "xrCreateInstance");
+  impl.bd_controller = bd_controller;
 
   XrInstanceProperties instance_props{XR_TYPE_INSTANCE_PROPERTIES};
   if (XR_SUCCEEDED(xrGetInstanceProperties(impl.instance, &instance_props)))
@@ -365,7 +398,7 @@ VRSystem::VRSystem() :
   assert_gl();
 
   // Controllers.
-  m_input.reset(new VRInput(impl.instance, impl.session));
+  m_input.reset(new VRInput(impl.instance, impl.session, impl.bd_controller));
   m_input->attach();
 
   apply_config();

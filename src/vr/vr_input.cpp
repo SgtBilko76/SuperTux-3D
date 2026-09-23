@@ -42,7 +42,7 @@ void check(XrResult result, const char* what)
 
 } // namespace
 
-VRInput::VRInput(XrInstance instance, XrSession session) :
+VRInput::VRInput(XrInstance instance, XrSession session, bool bd_controller) :
   m_instance(instance),
   m_session(session),
   m_action_set(XR_NULL_HANDLE),
@@ -94,6 +94,30 @@ VRInput::VRInput(XrInstance instance, XrSession session) :
     { m_recenter.action,   "/user/hand/left/input/thumbstick/click" },
     { m_cheat_menu.action, "/user/hand/right/input/thumbstick/click" },
   });
+
+  // PICO Touch-style controllers (PICO 4 / 4 Ultra and Neo 3). Only
+  // available when the runtime enabled XR_BD_controller_interaction; the
+  // button layout matches the Quest controllers.
+  if (bd_controller)
+  {
+    const std::vector<std::pair<XrAction, const char*>> pico_bindings = {
+      { m_move.action,       "/user/hand/left/input/thumbstick" },
+      { m_peek.action,       "/user/hand/right/input/thumbstick" },
+      { m_jump.action,       "/user/hand/right/input/a/click" },
+      { m_jump.action,       "/user/hand/left/input/trigger/value" },
+      { m_action.action,     "/user/hand/left/input/x/click" },
+      { m_action.action,     "/user/hand/right/input/trigger/value" },
+      { m_item.action,       "/user/hand/left/input/y/click" },
+      { m_back.action,       "/user/hand/right/input/b/click" },
+      { m_start.action,      "/user/hand/left/input/menu/click" },
+      { m_peek_left.action,  "/user/hand/left/input/squeeze/value" },
+      { m_peek_right.action, "/user/hand/right/input/squeeze/value" },
+      { m_recenter.action,   "/user/hand/left/input/thumbstick/click" },
+      { m_cheat_menu.action, "/user/hand/right/input/thumbstick/click" },
+    };
+    suggest_bindings("/interaction_profiles/bytedance/pico4_controller", pico_bindings);
+    suggest_bindings("/interaction_profiles/bytedance/pico_neo3_controller", pico_bindings);
+  }
 
   // Minimal fallback profile every runtime supports.
   suggest_bindings("/interaction_profiles/khr/simple_controller", {
