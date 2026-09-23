@@ -53,7 +53,9 @@
 class VRInput final
 {
 public:
-  VRInput(XrInstance instance, XrSession session);
+  /** @param bd_controller whether XR_BD_controller_interaction is enabled,
+      which adds the PICO controller bindings. */
+  VRInput(XrInstance instance, XrSession session, bool bd_controller = false);
   ~VRInput();
 
   /** Attach the action set to the session, must be called once
