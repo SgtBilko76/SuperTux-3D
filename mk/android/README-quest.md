@@ -1,4 +1,4 @@
-# SuperTux VR for Meta Quest and PICO
+# SuperTux 3D for Meta Quest and PICO
 
 This builds SuperTux as a standalone APK for the Meta Quest headsets
 (Quest 2 / 3 / 3S / Pro) and for PICO headsets (PICO 4, 4 Ultra, Neo 3).
