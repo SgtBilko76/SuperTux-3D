@@ -1,4 +1,4 @@
-# SuperTux Quest VR
+# SuperTux 3D
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-SgtBilko76-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/SgtBilko76)
 
