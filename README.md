@@ -1,5 +1,7 @@
 # SuperTux 3D
 
+**Download, install guide, controls and pictures: [portroyale.online/supertux.html](https://portroyale.online/supertux.html)**
+
 [![Sponsor](https://img.shields.io/badge/Sponsor-SgtBilko76-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/SgtBilko76)
 
 [SuperTux](https://www.supertux.org/), the classic open-source jump'n'run, running standalone on Meta Quest (Quest 2 / 3 / 3S / Pro) through OpenXR.
