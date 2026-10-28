@@ -15,6 +15,8 @@ The game is shown on a virtual screen in front of you, with each drawing layer a
 
 ## Controls
 
+![SuperTux 3D controller mapping](docs/controls.webp)
+
 | Controller input | Game control |
 |---|---|
 | Left thumbstick | Move |
